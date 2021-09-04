@@ -1,0 +1,158 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Exercise - we have to make</title>
+<script>
+// Grab data attributes from video-wrapper
+var videoID = $(".video-wrapper").data("video-id");
+var videoYouTubeLink = $(".video-wrapper").data("video-youtube-link");
+var videoStart = $(".video-wrapper").data("video-start");
+var videoEnd = $(".video-wrapper").data("video-end");
+var videoWidthAdd = $(".video-wrapper").data("video-width-add");
+var videoHeightAdd = $(".video-wrapper").data("video-height-add");
+
+// Create video script element
+var tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/player_api';
+var firstScriptTag = document.getElementsByTagName('script')[0];
+  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+// Prepend expander if data attr is yes
+if (videoYouTubeLink === 'y') {
+  $(".video-wrapper").prepend('<a href="https://youtu.be/_kRtOeaU0AU" class="video-expand" target="_blank">View on Youtube</a>');
+}
+
+// Setup the Youtube TV with player defaults
+var tv,
+  playerDefaults = {autoplay: 0, autohide: 1, modestbranding: 1, rel: 0, showinfo: 0, controls: 0, disablekb: 1, enablejsapi: 0, iv_load_policy: 3};
+var vid = {'videoId': videoID, 'startSeconds': videoStart, 'endSeconds': videoEnd, 'suggestedQuality': 'hd720'};
+
+function onYouTubePlayerAPIReady(){
+  tv = new YT.Player('tv', {events: {'onReady': onPlayerReady, 'onStateChange': onPlayerStateChange}, playerVars: playerDefaults});
+}
+
+function onPlayerReady(){
+  tv.loadVideoById(vid);
+  tv.mute();
+}
+
+function onPlayerStateChange(e) {
+  if (e.data === 1){
+    $('#tv').addClass('active');
+  } else if (e.data === 0){
+    tv.seekTo(vid.startSeconds)
+  }
+}
+
+function vidRescale(){
+  var w = $(window).width() + videoWidthAdd,
+    h = $(window).height() + videoHeightAdd;
+  if (w/h > 16/9){
+    tv.setSize(w, w/16*9);
+    $('.tv .screen').css({'left': '0px'});
+  } else {
+    tv.setSize(h/9*16, h);
+    $('.tv .screen').css({'left': -($('.tv .screen').outerWidth()-w)/2});
+  }
+}
+
+$(window).on('load resize', function(){
+  vidRescale();
+});
+</script>
+<style>
+@import "bourbon";
+
+a {
+  color: #cadecb;
+}
+.video-wrapper {
+	position: relative;
+	width: 100%;
+	margin: rem-calc(0 0 54.5);
+	min-height: rem(500);
+	overflow: hidden;
+}
+.video-overlay {
+	height: 100%;
+	opacity: .8;
+	position: absolute;
+	width: 100%;
+	z-index: 2;
+}
+.video-expand {
+	color: white;
+	font-size: rem(18);
+	line-height: 1em;
+	opacity: .4;
+	position: absolute;
+	top: rem(15);
+	right: rem(15);
+	z-index: 3;
+	&:hover {
+		@include transition(all 400ms ease-in-out);
+	}
+}
+.cover {
+  font-family: 'Helvetica Neue', Helvetica, sans-serif;
+	position: absolute;
+  margin: auto;
+	top: 10%;
+	left: 0;
+  right: 0;
+  bottom: 0;
+	z-index: 100;
+	width: 50%;
+  text-align: center;
+  h2 {
+    font-size: 36px;
+    font-weight: 100;
+    color: #fff;
+    line-height: 1.3em;
+  }
+  p {
+    font-size: 18px;
+    font-weight: 300;
+    color: #fff;
+  }
+}
+.tv {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 1;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	.screen {
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		z-index: 1;
+		margin: auto;
+		opacity: 0;
+		transition: opacity .5s;
+		&.active {
+			opacity: 1;
+		}
+	}
+}
+</style>
+</head>
+<body>
+<div class="cover">
+  </div>
+
+<div class="video-wrapper" data-video-id="_kRtOeaU0AU" data-video-youtube-link="https://youtu.be/_kRtOeaU0AU" data-video-start="75" data-video-end="140" data-video-width-add="100" data-video-height-add="100" style="height: 800px;">
+  <div class="video-overlay" style="background-color: #000; opacity: .70"></div>
+					  <div class="tv">
+						    <div class="screen mute" id="tv"></div>
+					  </div>
+				</div>
+</body>
+</html>
